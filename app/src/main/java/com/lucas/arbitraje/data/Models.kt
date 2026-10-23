@@ -11,7 +11,22 @@ data class Team(
     val shieldPath: String? = null,
     /** Color ARGB del equipo, se usa cuando no hay escudo. */
     val color: Long = 0xFF1E88E5,
-)
+    /** Plantel. Nullable porque los datos guardados antes de la 1.0.3 no lo tienen (Gson no usa los valores por defecto). */
+    val players: List<Player>? = null,
+) {
+    val roster: List<Player> get() = players.orEmpty().sortedWith(compareBy({ it.number ?: Int.MAX_VALUE }, { it.name.lowercase() }))
+}
+
+val Positions = listOf("Arquero", "Defensor", "Mediocampista", "Delantero")
+
+data class Player(
+    val id: String = newId(),
+    val name: String,
+    val number: Int? = null,
+    val position: String? = null,
+) {
+    val label: String get() = listOfNotNull(number?.let { "#$it" }, name).joinToString(" ")
+}
 
 data class League(
     val id: String = newId(),
@@ -24,7 +39,12 @@ enum class CardColor(val label: String, val argb: Long) {
     YELLOW("Amarilla", 0xFFFDD835),
     RED("Roja", 0xFFE53935),
     BLUE("Azul", 0xFF1E88E5),
-    GREEN("Verde", 0xFF43A047),
+    GREEN("Verde", 0xFF43A047);
+
+    companion object {
+        /** Tarjetas que se ofrecen en el partido. Azul y verde quedan para leer partidos viejos. */
+        val active = listOf(YELLOW, RED)
+    }
 }
 
 enum class EventType { GOAL, CARD }
@@ -43,6 +63,7 @@ data class MatchEvent(
     val elapsedMs: Long,
     val card: CardColor? = null,
     val player: String? = null,
+    val playerId: String? = null,
 )
 
 data class Match(
@@ -195,3 +216,17 @@ fun teamStats(team: Team, matches: List<Match>): TeamStats {
     }
     return TeamStats(team, p, w, d, l, gf, ga, cards)
 }
+
+data class Scorer(val name: String, val team: Team?, val goals: Int)
+
+fun topScorers(teams: List<Team>, matches: List<Match>): List<Scorer> =
+    matches.filter { it.finished }.flatMap { m ->
+        m.events.filter { it.type == EventType.GOAL && !it.player.isNullOrBlank() }.map { e ->
+            val teamId = if (e.side == Side.HOME) m.homeTeamId else m.awayTeamId
+            val team = teams.find { it.id == teamId }
+            val name = e.playerId?.let { id -> team?.players.orEmpty().find { it.id == id }?.label } ?: e.player!!
+            Triple(teamId, e.playerId ?: name.lowercase(), name to team)
+        }
+    }.groupBy { it.first to it.second }
+        .map { (_, list) -> Scorer(list.last().third.first, list.last().third.second, list.size) }
+        .sortedWith(compareByDescending<Scorer> { it.goals }.thenBy { it.name.lowercase() })

@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -85,7 +87,14 @@ fun TeamsScreen(onBack: () -> Unit) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         TeamBadge(team, 48.dp)
                         Spacer(Modifier.width(16.dp))
-                        Text(team.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                        Column(Modifier.weight(1f)) {
+                            Text(team.name, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                if (team.roster.isEmpty()) "Sin plantel" else "${team.roster.size} jugadores",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             }
@@ -112,6 +121,7 @@ fun TeamEditDialog(team: Team?, onDismiss: () -> Unit, onSave: (Team) -> Unit, o
     var name by remember { mutableStateOf(team?.name ?: "") }
     var color by remember { mutableLongStateOf(team?.color ?: TeamColors.first()) }
     var shield by remember { mutableStateOf(team?.shieldPath) }
+    var players by remember { mutableStateOf(team?.players.orEmpty()) }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) repo.importShield(uri, id)?.let { shield = it }
@@ -122,7 +132,7 @@ fun TeamEditDialog(team: Team?, onDismiss: () -> Unit, onSave: (Team) -> Unit, o
         onDismissRequest = onDismiss,
         title = { Text(if (team == null) "Nuevo equipo" else "Editar equipo") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TeamBadge(preview, 72.dp)
                     Spacer(Modifier.width(16.dp))
@@ -155,6 +165,7 @@ fun TeamEditDialog(team: Team?, onDismiss: () -> Unit, onSave: (Team) -> Unit, o
                         )
                     }
                 }
+                RosterEditor(players) { players = it }
                 if (onDelete != null) {
                     TextButton(onClick = onDelete) {
                         Icon(Icons.Filled.Delete, null, tint = MaterialTheme.colorScheme.error)
@@ -166,7 +177,7 @@ fun TeamEditDialog(team: Team?, onDismiss: () -> Unit, onSave: (Team) -> Unit, o
         },
         confirmButton = {
             Button(enabled = name.isNotBlank(), onClick = {
-                onSave(Team(id = id, name = name.trim(), shieldPath = shield, color = color))
+                onSave(Team(id = id, name = name.trim(), shieldPath = shield, color = color, players = players))
             }) { Text("Guardar", fontWeight = FontWeight.Bold) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },

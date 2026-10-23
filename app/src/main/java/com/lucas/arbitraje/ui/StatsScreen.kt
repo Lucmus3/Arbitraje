@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lucas.arbitraje.data.CardColor
+import com.lucas.arbitraje.data.topScorers
 import com.lucas.arbitraje.data.EventType
 import com.lucas.arbitraje.data.Repository
 import com.lucas.arbitraje.data.teamStats
@@ -45,7 +46,7 @@ fun StatsScreen(onBack: () -> Unit) {
     val data by repo.data.collectAsStateWithLifecycle()
     val finished = data.matches.filter { it.finished }
     val totalGoals = finished.sumOf { it.homeGoals + it.awayGoals }
-    val cardTotals = CardColor.entries.associateWith { c ->
+    val cardTotals = CardColor.active.associateWith { c ->
         finished.sumOf { m -> m.events.count { it.type == EventType.CARD && it.card == c } }
     }
     val stats = data.teams.map { teamStats(it, data.matches) }
@@ -67,7 +68,7 @@ fun StatsScreen(onBack: () -> Unit) {
                 }
                 Spacer(Modifier.size(8.dp))
                 Row(Modifier.fillMaxWidth()) {
-                    CardColor.entries.forEachIndexed { i, c ->
+                    CardColor.active.forEachIndexed { i, c ->
                         if (i > 0) Spacer(Modifier.width(8.dp))
                         StatTile(c.label, "${cardTotals[c] ?: 0}", Modifier.weight(1f), Color(c.argb))
                     }
@@ -79,7 +80,7 @@ fun StatsScreen(onBack: () -> Unit) {
                             Spacer(Modifier.width(30.dp))
                             Text("Equipo", Modifier.width(120.dp), fontWeight = FontWeight.Bold)
                             listOf("PJ", "G", "E", "P", "GF", "GC").forEach { Cell(it, bold = true) }
-                            CardColor.entries.forEach { c ->
+                            CardColor.active.forEach { c ->
                                 Box(Modifier.width(36.dp), contentAlignment = Alignment.Center) {
                                     Box(Modifier.size(12.dp, 16.dp).clip(RoundedCornerShape(2.dp)).background(Color(c.argb)))
                                 }
@@ -93,10 +94,27 @@ fun StatsScreen(onBack: () -> Unit) {
                                 Text(s.team.name, Modifier.width(120.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Cell("${s.played}"); Cell("${s.won}"); Cell("${s.drawn}"); Cell("${s.lost}")
                                 Cell("${s.goalsFor}"); Cell("${s.goalsAgainst}")
-                                CardColor.entries.forEach { c -> Cell("${s.cards[c] ?: 0}") }
+                                CardColor.active.forEach { c -> Cell("${s.cards[c] ?: 0}") }
                             }
                         }
                         if (stats.isEmpty()) Text("Sin equipos todavía.", Modifier.padding(8.dp))
+                    }
+                }
+                val scorers = topScorers(data.teams, data.matches)
+                Text("Goleadores", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 20.dp, bottom = 8.dp))
+                Card {
+                    Column(Modifier.fillMaxWidth().padding(8.dp)) {
+                        if (scorers.isEmpty()) Text("Todavía no hay goles con autor.", Modifier.padding(8.dp))
+                        scorers.take(15).forEachIndexed { i, sc ->
+                            if (i > 0) HorizontalDivider()
+                            Row(Modifier.heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text("${i + 1}", Modifier.width(28.dp), fontWeight = FontWeight.Bold)
+                                TeamBadge(sc.team, 24.dp)
+                                Spacer(Modifier.width(8.dp))
+                                Text(sc.name, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text("${sc.goals}", fontWeight = FontWeight.Bold, modifier = Modifier.padding(end = 8.dp))
+                            }
+                        }
                     }
                 }
             }

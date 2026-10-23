@@ -41,6 +41,10 @@ class Repository private constructor(private val context: Context) {
         d.copy(teams = if (d.teams.any { it.id == team.id }) d.teams.map { if (it.id == team.id) team else it } else d.teams + team)
     }
 
+    fun addPlayer(teamId: String, player: Player) = save { d ->
+        d.copy(teams = d.teams.map { if (it.id == teamId) it.copy(players = it.players.orEmpty() + player) else it })
+    }
+
     fun deleteTeam(id: String) = save { d ->
         d.teams.find { it.id == id }?.shieldPath?.let { File(it).delete() }
         d.copy(
