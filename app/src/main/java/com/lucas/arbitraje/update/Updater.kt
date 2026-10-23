@@ -17,35 +17,66 @@ import java.net.URL
 data class UpdateInfo(val versionCode: Int, val versionName: String, val apkUrl: String, val notes: String)
 
 /**
- * Auto-actualización desde GitHub Releases.
- * Cada build de GitHub Actions publica un release con tag "v1.0.N" (N = versionCode) y el APK adjunto.
+ * Auto-actualización desde GitHub: usa el último release ("v1.0.N", N = versionCode, con el APK adjunto)
+ * o, si no hay releases, el manifiesto updates/update.json de la rama main. Gana la versión más alta.
  */
 object Updater {
 
     suspend fun check(): UpdateInfo? = withContext(Dispatchers.IO) {
-        try {
-            val conn = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases/latest")
-                .openConnection() as HttpURLConnection
-            conn.setRequestProperty("Accept", "application/vnd.github+json")
-            conn.connectTimeout = 10_000
-            conn.readTimeout = 10_000
-            if (conn.responseCode != 200) return@withContext null
-            val json = JsonParser.parseString(conn.inputStream.bufferedReader().readText()).asJsonObject
+        listOfNotNull(fromRelease(), fromManifest())
+            .filter { it.versionCode > BuildConfig.VERSION_CODE }
+            .maxByOrNull { it.versionCode }
+    }
+
+    private fun getJson(url: String) = try {
+        val conn = URL(url).openConnection() as HttpURLConnection
+        conn.setRequestProperty("Accept", "application/vnd.github+json")
+        conn.setRequestProperty("Cache-Control", "no-cache")
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 10_000
+        if (conn.responseCode != 200) null
+        else JsonParser.parseString(conn.inputStream.bufferedReader().readText()).asJsonObject
+    } catch (e: Exception) {
+        null
+    }
+
+    /** Último release de GitHub con tag "v1.0.N" y el APK adjunto. */
+    private fun fromRelease(): UpdateInfo? = try {
+        getJson("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases/latest")?.let { json ->
             val tag = json.get("tag_name").asString
-            val code = tag.substringAfterLast('.').toIntOrNull() ?: return@withContext null
-            if (code <= BuildConfig.VERSION_CODE) return@withContext null
             val asset = json.getAsJsonArray("assets")
                 .map { it.asJsonObject }
-                .firstOrNull { it.get("name").asString.endsWith(".apk") } ?: return@withContext null
-            UpdateInfo(
+                .firstOrNull { it.get("name").asString.endsWith(".apk") }
+            val code = tag.substringAfterLast('.').toIntOrNull()
+            if (asset == null || code == null) null
+            else UpdateInfo(
                 versionCode = code,
                 versionName = tag.removePrefix("v"),
                 apkUrl = asset.get("browser_download_url").asString,
                 notes = json.get("body")?.takeIf { !it.isJsonNull }?.asString.orEmpty(),
             )
-        } catch (e: Exception) {
-            null
         }
+    } catch (e: Exception) {
+        null
+    }
+
+    /**
+     * Alternativa sin releases: updates/update.json en la rama main del repo, con
+     * {"versionCode": N, "versionName": "1.0.N", "apk": "updates/arbitraje.apk", "notes": "..."}.
+     */
+    private fun fromManifest(): UpdateInfo? = try {
+        val base = "https://raw.githubusercontent.com/${BuildConfig.UPDATE_REPO}/main/"
+        getJson(base + "updates/update.json")?.let { json ->
+            val apk = json.get("apk").asString
+            UpdateInfo(
+                versionCode = json.get("versionCode").asInt,
+                versionName = json.get("versionName").asString,
+                apkUrl = if (apk.startsWith("http")) apk else base + apk,
+                notes = json.get("notes")?.takeIf { !it.isJsonNull }?.asString.orEmpty(),
+            )
+        }
+    } catch (e: Exception) {
+        null
     }
 
     /** Descarga el APK informando el progreso (0..1). */

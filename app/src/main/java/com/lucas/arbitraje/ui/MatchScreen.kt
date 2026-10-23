@@ -63,6 +63,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -409,11 +411,9 @@ private fun RowScope.CardButton(card: CardColor, modifier: Modifier, onClick: ()
             .height(64.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(color)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(card.label, color = if (color.brightness() > 0.6f) Color.Black else Color.White, fontWeight = FontWeight.Bold)
-    }
+            .clickable(onClick = onClick)
+            .semantics { contentDescription = "Tarjeta ${card.label}" },
+    )
 }
 
 @Composable
@@ -426,24 +426,14 @@ private fun CardFlash(card: CardColor, onDone: () -> Unit) {
         }
         onDone()
     }
-    val color = Color(card.argb)
-    val fg = if (color.brightness() > 0.6f) Color.Black else Color.White
+    // Solo el color, sin textos: se muestra a los jugadores.
     Box(
         Modifier
             .fillMaxSize()
-            .background(color)
+            .background(Color(card.argb))
             // absorbe los toques para no sumar goles por accidente
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {},
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("TARJETA ${card.label.uppercase()}", color = fg, fontSize = 36.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
-            Text("$remaining", color = fg.copy(alpha = 0.6f), fontSize = 72.sp, fontWeight = FontWeight.Bold)
-        }
-        IconButton(onClick = onDone, modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(8.dp)) {
-            Icon(Icons.Filled.Close, "Cerrar", tint = fg)
-        }
-    }
+    )
 }
 
 @Composable
