@@ -15,3 +15,9 @@ Configuración del repo:
 - Secreto `KEYSTORE_BASE64`: la clave de firma en base64. Siempre la misma, si cambia el teléfono rechaza las actualizaciones.
 - Secreto `KEYSTORE_PASSWORD`: contraseña de la clave (alias `arbitraje`).
 - Variable `GOOGLE_WEB_CLIENT_ID` (opcional): ID de cliente web de Google Cloud para "Acceder con Google". Sin ella, la app usa el selector de cuentas de Google del teléfono.
+
+## Publicar una actualización sin GitHub Actions
+
+Compilar con `./gradlew assembleRelease -PbuildNumber=N` (N mayor que la versión instalada), copiar el APK a
+`updates/arbitraje.apk` y subir `versionCode`/`versionName` en `updates/update.json`. Al llegar a `main`, la app
+lo detecta sola. Si existe un release `v1.0.N` en GitHub, también lo usa (gana la versión más alta).
