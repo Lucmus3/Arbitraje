@@ -1,6 +1,6 @@
 {
-  "versionCode": 3,
-  "versionName": "1.0.3",
+  "versionCode": 4,
+  "versionName": "1.0.4",
   "apk": "updates/arbitraje.apk",
-  "notes": "Plantel por equipo, autor de cada gol y tarjeta, tabla de goleadores. Solo tarjeta amarilla y roja."
+  "notes": "Nueva estética: azul marino, tarjetas gris claro y botones redondeados."
 }

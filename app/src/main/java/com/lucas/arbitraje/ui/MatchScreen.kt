@@ -169,8 +169,18 @@ fun MatchScreen(matchId: String, onExit: () -> Unit, onFinished: (String) -> Uni
 
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
-        Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+    Box(Modifier.fillMaxSize().background(Navy)) {
+        Column(
+            Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("ASISTENTE ARBITRAL", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp, modifier = Modifier.weight(1f).padding(start = 4.dp))
+                if (match.status == MatchStatus.PLAYING || match.status == MatchStatus.PAUSED) {
+                    IconButton(onClick = { confirmEndPeriod = true }) { Icon(Icons.Filled.Flag, "Terminar período", tint = Color.White) }
+                }
+                IconButton(onClick = { confirmExit = true }) { Icon(Icons.Filled.Close, "Salir", tint = Color.White) }
+            }
             ClockBar(
                 match = match,
                 played = played,
@@ -179,19 +189,18 @@ fun MatchScreen(matchId: String, onExit: () -> Unit, onFinished: (String) -> Uni
                 onStart = { update(match.start(System.currentTimeMillis())) },
                 onPause = { update(match.pause(System.currentTimeMillis())) },
                 onResume = { update(match.resume(System.currentTimeMillis())) },
-                onEndPeriod = { confirmEndPeriod = true },
+                home = home,
+                away = away,
             )
             // Pantalla dividida: un equipo por mitad.
             if (landscape) {
-                Row(Modifier.weight(1f).fillMaxWidth()) {
+                Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TeamHalf(home, match.homeGoals, Modifier.weight(1f).fillMaxHeight(), { goal(Side.HOME, 1) }, { goal(Side.HOME, -1) })
-                    Spacer(Modifier.width(2.dp).fillMaxHeight().background(Color.White.copy(alpha = 0.4f)))
                     TeamHalf(away, match.awayGoals, Modifier.weight(1f).fillMaxHeight(), { goal(Side.AWAY, 1) }, { goal(Side.AWAY, -1) })
                 }
             } else {
-                Column(Modifier.weight(1f).fillMaxWidth()) {
+                Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     TeamHalf(home, match.homeGoals, Modifier.weight(1f).fillMaxWidth(), { goal(Side.HOME, 1) }, { goal(Side.HOME, -1) })
-                    Spacer(Modifier.height(2.dp).fillMaxWidth().background(Color.White.copy(alpha = 0.4f)))
                     TeamHalf(away, match.awayGoals, Modifier.weight(1f).fillMaxWidth(), { goal(Side.AWAY, 1) }, { goal(Side.AWAY, -1) })
                 }
             }
@@ -319,64 +328,69 @@ private fun ClockBar(
     onStart: () -> Unit,
     onPause: () -> Unit,
     onResume: () -> Unit,
-    onEndPeriod: () -> Unit,
+    home: Team?,
+    away: Team?,
 ) {
     val extra = played - regulationMs
     val paused = match.status == MatchStatus.PAUSED
     Row(
         Modifier
             .fillMaxWidth()
-            .background(if (paused) Color(0xFF4E342E) else Color(0xFF111111))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .clip(RoundedCornerShape(10.dp))
+            .background(CardGray)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
+        // espacio igual al del botón para que el reloj quede centrado
+        Spacer(Modifier.width(56.dp))
+        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 when (match.status) {
-                    MatchStatus.READY -> "Listo para empezar"
-                    MatchStatus.BREAK -> "Entretiempo · sigue ${periodName(match.currentPeriod, match.periods)}"
-                    MatchStatus.PAUSED -> "PAUSADO · ${periodName(match.currentPeriod, match.periods)}"
-                    else -> periodName(match.currentPeriod, match.periods).replaceFirstChar { it.uppercase() }
+                    MatchStatus.READY -> "LISTO PARA EMPEZAR"
+                    MatchStatus.BREAK -> "ENTRETIEMPO · SIGUE ${periodName(match.currentPeriod, match.periods).uppercase()}"
+                    MatchStatus.PAUSED -> "PAUSADO · ${periodName(match.currentPeriod, match.periods).uppercase()}"
+                    else -> periodName(match.currentPeriod, match.periods).uppercase()
                 },
-                color = if (paused) Color(0xFFFFCC80) else Color.White.copy(alpha = 0.7f),
-                style = MaterialTheme.typography.labelLarge,
+                color = if (paused) Color(0xFFC0392B) else InkSoft,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
             )
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     formatClock(minOf(played, regulationMs)),
-                    color = Color.White,
-                    fontSize = 44.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
+                    color = Ink,
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.SemiBold,
                 )
                 if (extra > 0) {
                     Text(
                         " +${formatClock(extra)}",
-                        color = Color(0xFFFFB74D),
-                        fontSize = 26.sp,
+                        color = Color(0xFFC0392B),
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(bottom = 4.dp),
+                        modifier = Modifier.padding(bottom = 5.dp),
                     )
                 }
             }
+            Text(
+                "LOCAL ${match.homeGoals} — ${match.awayGoals} VISITANTE",
+                color = Ink,
+                style = MaterialTheme.typography.bodyMedium,
+            )
             // Cuánto agregar: el tiempo detenido redondeado hacia arriba en minutos.
             val addMinutes = ceil(stoppage / 60_000.0).toInt()
             Text(
                 "Detenido ${formatClock(stoppage)} · agregar +$addMinutes'",
-                color = if (stoppage > 0) Color(0xFFFFCC80) else Color.White.copy(alpha = 0.5f),
-                style = MaterialTheme.typography.bodyMedium,
+                color = if (stoppage > 0) Color(0xFFB45309) else InkSoft,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = if (stoppage > 0) FontWeight.Bold else FontWeight.Normal,
             )
         }
         when (match.status) {
-            MatchStatus.READY, MatchStatus.BREAK -> BigRoundButton(Icons.Filled.PlayArrow, "Iniciar", Color(0xFF2E7D32), onStart)
-            MatchStatus.PLAYING -> BigRoundButton(Icons.Filled.Pause, "Pausar", Color(0xFFEF6C00), onPause)
-            MatchStatus.PAUSED -> BigRoundButton(Icons.Filled.PlayArrow, "Reanudar", Color(0xFF2E7D32), onResume)
-            MatchStatus.FINISHED -> {}
-        }
-        if (match.status == MatchStatus.PLAYING || match.status == MatchStatus.PAUSED) {
-            Spacer(Modifier.width(8.dp))
-            IconButton(onClick = onEndPeriod) { Icon(Icons.Filled.Flag, "Terminar período", tint = Color.White) }
+            MatchStatus.READY, MatchStatus.BREAK -> BigRoundButton(Icons.Filled.PlayArrow, "Iniciar", Navy, onStart)
+            MatchStatus.PLAYING -> BigRoundButton(Icons.Filled.Pause, "Pausar", Navy, onPause)
+            MatchStatus.PAUSED -> BigRoundButton(Icons.Filled.PlayArrow, "Reanudar", Color(0xFFC0392B), onResume)
+            MatchStatus.FINISHED -> Spacer(Modifier.width(56.dp))
         }
     }
 }
@@ -385,26 +399,35 @@ private fun ClockBar(
 private fun BigRoundButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, color: Color, onClick: () -> Unit) {
     FilledIconButton(
         onClick = onClick,
-        modifier = Modifier.size(64.dp),
+        modifier = Modifier.size(56.dp),
         colors = IconButtonDefaults.filledIconButtonColors(containerColor = color, contentColor = Color.White),
-    ) { Icon(icon, label, Modifier.size(40.dp)) }
+    ) { Icon(icon, label, Modifier.size(34.dp)) }
 }
 
 @Composable
 private fun TeamHalf(team: Team?, goals: Int, modifier: Modifier, onPlus: () -> Unit, onMinus: () -> Unit) {
-    val base = Color(team?.color ?: 0xFF607D8B)
-    val bg = base.copy(alpha = 0.35f)
-    BoxWithConstraints(modifier.background(Color.Black).background(bg).padding(12.dp)) {
+    val teamColor = Color(team?.color ?: 0xFF607D8B)
+    BoxWithConstraints(
+        modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(CardGray),
+    ) {
+        // franja con el color del equipo
+        Box(Modifier.fillMaxHeight().width(6.dp).background(teamColor))
         val compact = maxHeight < 260.dp
-        val scoreSize = (minOf(maxWidth.value * 0.55f, maxHeight.value * if (compact) 0.6f else 0.45f)).sp
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceEvenly) {
+        val scoreSize = (minOf(maxWidth.value * 0.5f, maxHeight.value * if (compact) 0.55f else 0.42f)).sp
+        Column(
+            Modifier.fillMaxSize().padding(start = 18.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly,
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TeamBadge(team, if (compact) 40.dp else 56.dp)
+                TeamBadge(team, if (compact) 36.dp else 48.dp)
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    team?.name ?: "?",
-                    color = Color.White,
-                    fontSize = 22.sp,
+                    (team?.name ?: "?").uppercase(),
+                    color = Ink,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -414,20 +437,22 @@ private fun TeamHalf(team: Team?, goals: Int, modifier: Modifier, onPlus: () -> 
                 FilledIconButton(
                     onClick = onMinus,
                     modifier = Modifier.size(52.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.15f), contentColor = Color.White),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = ButtonGray, contentColor = Ink),
                 ) { Icon(Icons.Filled.Remove, "Restar gol") }
                 Text(
                     "$goals",
-                    color = Color.White,
+                    color = Ink,
                     fontSize = scoreSize,
-                    fontWeight = FontWeight.Black,
+                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(horizontal = 18.dp),
                 )
                 FilledIconButton(
                     onClick = onPlus,
                     modifier = Modifier.size(72.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White, contentColor = Color.Black),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Navy, contentColor = Color.White),
                 ) { Icon(Icons.Filled.Add, "Sumar gol", Modifier.size(44.dp)) }
             }
         }
@@ -437,7 +462,7 @@ private fun TeamHalf(team: Team?, goals: Int, modifier: Modifier, onPlus: () -> 
 @Composable
 private fun CardBar(onCard: (CardColor) -> Unit) {
     Row(
-        Modifier.fillMaxWidth().background(Color(0xFF111111)).padding(8.dp),
+        Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         CardColor.active.forEach { c ->
@@ -452,7 +477,7 @@ private fun RowScope.CardButton(card: CardColor, modifier: Modifier, onClick: ()
     Box(
         modifier
             .height(64.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(10.dp))
             .background(color)
             .clickable(onClick = onClick)
             .semantics { contentDescription = "Tarjeta ${card.label}" },
@@ -503,7 +528,7 @@ private fun AssignCardDialog(
 
 @Composable
 private fun ColumnScope.TeamChoice(team: Team?, onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth().height(56.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
+    Button(onClick = onClick, modifier = Modifier.fillMaxWidth().height(56.dp), colors = grayButtonColors(), shape = MaterialTheme.shapes.medium) {
         TeamBadge(team, 32.dp)
         Spacer(Modifier.width(12.dp))
         Text(team?.name ?: "?", Modifier.weight(1f))

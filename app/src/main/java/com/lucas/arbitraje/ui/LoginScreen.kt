@@ -1,5 +1,6 @@
 package com.lucas.arbitraje.ui
 
+import androidx.compose.ui.graphics.Color
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -69,12 +70,12 @@ fun LoginScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(Icons.Filled.SportsSoccer, null, Modifier.size(96.dp), tint = Accent)
+        Icon(Icons.Filled.SportsSoccer, null, Modifier.size(96.dp), tint = Color.White)
         Spacer(Modifier.height(16.dp))
-        Text("Arbitraje", fontSize = 40.sp, fontWeight = FontWeight.Bold)
+        Text("ASISTENTE ARBITRAL", fontSize = 30.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         Text(
             "Administrá partidos, equipos y ligas",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Muted,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(48.dp))
@@ -84,6 +85,8 @@ fun LoginScreen() {
             Button(
                 onClick = { if (auth.usesGoogleSignIn) googleSignIn() else chooser.launch(auth.accountChooserIntent()) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = grayButtonColors(),
             ) {
                 Icon(Icons.Filled.AccountCircle, null)
                 Spacer(Modifier.size(8.dp))
@@ -91,7 +94,7 @@ fun LoginScreen() {
             }
             if (auth.usesGoogleSignIn) {
                 TextButton(onClick = { chooser.launch(auth.accountChooserIntent()) }) {
-                    Text("Elegir una cuenta del teléfono")
+                    Text("Elegir una cuenta del teléfono", color = Muted)
                 }
             }
         }

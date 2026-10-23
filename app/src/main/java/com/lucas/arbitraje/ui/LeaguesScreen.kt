@@ -74,7 +74,7 @@ fun LeaguesScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
     ) { padding ->
         if (data.leagues.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("Todavía no hay ligas.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Todavía no hay ligas.", color = Muted)
             }
         }
         LazyColumn(
@@ -191,7 +191,7 @@ fun LeagueDetailScreen(leagueId: String, onBack: () -> Unit, onNewMatch: (String
                     }
                 }
                 Text("Partidos jugados", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 20.dp, bottom = 8.dp))
-                if (matches.isEmpty()) Text("Ninguno todavía.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (matches.isEmpty()) Text("Ninguno todavía.", color = Muted)
             }
             items(matches, key = { it.id }) { m ->
                 MatchRow(m, data.teams, df.format(Date(m.startedAt))) { onOpenMatch(m.id) }
