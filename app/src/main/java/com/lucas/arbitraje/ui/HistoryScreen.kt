@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SportsSoccer
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -154,15 +155,25 @@ fun MatchDetailScreen(matchId: String, onBack: () -> Unit, onResume: (String) ->
                 val team = when (e.side) { Side.HOME -> h; Side.AWAY -> a; null -> null }
                 Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(eventMinute(m, e), Modifier.width(64.dp), fontWeight = FontWeight.Bold)
-                    if (e.type == EventType.GOAL) {
-                        Icon(Icons.Filled.SportsSoccer, null, Modifier.size(22.dp))
-                    } else {
-                        Box(Modifier.size(width = 16.dp, height = 22.dp).clip(RoundedCornerShape(3.dp)).background(Color(e.card!!.argb)))
+                    when {
+                        e.type == EventType.GOAL -> Icon(Icons.Filled.SportsSoccer, null, Modifier.size(22.dp))
+                        e.type == EventType.SUB -> Icon(Icons.Filled.SwapHoriz, null, Modifier.size(22.dp))
+                        e.card != null -> Box(Modifier.size(width = 16.dp, height = 22.dp).clip(RoundedCornerShape(3.dp)).background(Color(e.card.argb)))
                     }
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text(if (e.type == EventType.GOAL) "Gol de ${team?.name ?: "?"}" else "Tarjeta ${e.card!!.label.lowercase()} · ${team?.name ?: "sin equipo"}")
-                        e.player?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = Muted) }
+                        Text(
+                            when (e.type) {
+                                EventType.GOAL -> "Gol de ${team?.name ?: "?"}"
+                                EventType.SUB -> "Cambio · ${team?.name ?: "?"}"
+                                EventType.CARD -> "Tarjeta ${e.card?.label?.lowercase().orEmpty()} · ${team?.name ?: "sin equipo"}"
+                            }
+                        )
+                        if (e.type == EventType.SUB) Text(
+                            "Sale ${e.player ?: "?"} · Entra ${e.playerIn ?: "?"}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Muted,
+                        ) else e.player?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = Muted) }
                     }
                 }
             }
