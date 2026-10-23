@@ -36,8 +36,8 @@ data class League(
 )
 
 enum class CardColor(val label: String, val argb: Long) {
-    YELLOW("Amarilla", 0xFFFDD835),
-    RED("Roja", 0xFFE53935),
+    YELLOW("Amarilla", 0xFFF4D03F),
+    RED("Roja", 0xFFC0392B),
     BLUE("Azul", 0xFF1E88E5),
     GREEN("Verde", 0xFF43A047);
 

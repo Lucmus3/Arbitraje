@@ -74,7 +74,7 @@ fun TeamsScreen(onBack: () -> Unit) {
     ) { padding ->
         if (data.teams.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("Todavía no hay equipos.\nCreá uno con su escudo.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Todavía no hay equipos.\nCreá uno con su escudo.", color = Muted)
             }
         }
         LazyColumn(

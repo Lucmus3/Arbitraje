@@ -92,14 +92,19 @@ fun formatClock(ms: Long): String {
 @Composable
 fun AppTopBar(title: String, onBack: (() -> Unit)? = null, actions: @Composable () -> Unit = {}) {
     TopAppBar(
-        title = { Text(title, fontWeight = FontWeight.SemiBold) },
+        title = { Text(title.uppercase(), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium) },
         navigationIcon = {
             if (onBack != null) IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
             }
         },
         actions = { actions() },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Pitch),
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Navy,
+            titleContentColor = Color.White,
+            navigationIconContentColor = Color.White,
+            actionIconContentColor = Color.White,
+        ),
     )
 }
 

@@ -105,7 +105,7 @@ fun RosterEditor(players: List<Player>, onChange: (List<Player>) -> Unit) {
                 p.position?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
         }
-        OutlinedButton(onClick = { adding = true }, modifier = Modifier.fillMaxWidth()) { Text("+ Agregar jugador") }
+        Button(onClick = { adding = true }, modifier = Modifier.fillMaxWidth(), colors = grayButtonColors(), shape = MaterialTheme.shapes.medium) { Text("+ Agregar jugador") }
     }
     if (adding) PlayerEditDialog(null, onDismiss = { adding = false }, onSave = { onChange(players + it); adding = false })
     editing?.let { e ->
@@ -140,7 +140,7 @@ fun PlayerPickerDialog(
                     TeamBadge(team, 28.dp); Spacer(Modifier.width(8.dp)); Text(team.name, fontWeight = FontWeight.Bold)
                 }
                 team?.roster?.forEach { p ->
-                    OutlinedButton(onClick = { onPick(p, false) }, modifier = Modifier.fillMaxWidth()) {
+                    Button(onClick = { onPick(p, false) }, modifier = Modifier.fillMaxWidth(), colors = grayButtonColors(), shape = MaterialTheme.shapes.medium) {
                         Text(p.number?.toString() ?: "-", Modifier.width(36.dp), fontWeight = FontWeight.Bold)
                         Text(p.name, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }

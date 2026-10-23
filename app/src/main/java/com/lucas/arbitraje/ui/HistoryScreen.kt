@@ -68,7 +68,7 @@ fun HistoryScreen(onBack: () -> Unit, onOpen: (String) -> Unit) {
     Scaffold(containerColor = Pitch, topBar = { AppTopBar("Historial", onBack) }) { padding ->
         if (matches.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("No hay partidos terminados.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("No hay partidos terminados.", color = Muted)
             }
         }
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(16.dp)) {
@@ -142,13 +142,13 @@ fun MatchDetailScreen(matchId: String, onBack: () -> Unit, onResume: (String) ->
                 }
                 Spacer(Modifier.height(12.dp))
                 val stop = m.stoppageMs.mapIndexed { i, ms -> "${periodName(i + 1, m.periods)}: ${formatClock(ms)}" }
-                if (stop.isNotEmpty()) Text("Tiempo detenido · " + stop.joinToString(" · "), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (stop.isNotEmpty()) Text("Tiempo detenido · " + stop.joinToString(" · "), color = Muted)
                 if (!m.finished) {
                     Spacer(Modifier.height(8.dp))
-                    Button(onClick = { onResume(m.id) }) { Icon(Icons.Filled.PlayArrow, null); Text("Volver al partido") }
+                    Button(onClick = { onResume(m.id) }, colors = grayButtonColors()) { Icon(Icons.Filled.PlayArrow, null); Text("Volver al partido") }
                 }
                 Text("Eventos", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 20.dp, bottom = 8.dp))
-                if (m.events.isEmpty()) Text("Sin eventos.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (m.events.isEmpty()) Text("Sin eventos.", color = Muted)
             }
             items(m.events.sortedWith(compareBy({ it.period }, { it.elapsedMs })), key = { it.id }) { e ->
                 val team = when (e.side) { Side.HOME -> h; Side.AWAY -> a; null -> null }
@@ -162,7 +162,7 @@ fun MatchDetailScreen(matchId: String, onBack: () -> Unit, onResume: (String) ->
                     Spacer(Modifier.width(12.dp))
                     Column {
                         Text(if (e.type == EventType.GOAL) "Gol de ${team?.name ?: "?"}" else "Tarjeta ${e.card!!.label.lowercase()} · ${team?.name ?: "sin equipo"}")
-                        e.player?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        e.player?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = Muted) }
                     }
                 }
             }

@@ -127,17 +127,17 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             Text(
                 "Hola, ${user?.name ?: user?.email ?: ""}",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Muted,
             )
 
             update?.let { info ->
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF1565C0))) {
+                Card(colors = CardDefaults.cardColors(containerColor = NavyLight, contentColor = Color.White)) {
                     Column(Modifier.padding(16.dp)) {
                         Text("Nueva versión ${info.versionName} disponible", fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(8.dp))
                         val p = progress
                         if (p != null) LinearProgressIndicator(progress = { p }, modifier = Modifier.fillMaxWidth())
-                        else Button(onClick = { installUpdate(info) }) { Text("Actualizar") }
+                        else Button(onClick = { installUpdate(info) }, colors = grayButtonColors()) { Text("ACTUALIZAR", fontWeight = FontWeight.Bold) }
                     }
                 }
             }
@@ -147,7 +147,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                 val a = repo.team(live.awayTeamId)
                 Card(
                     Modifier.fillMaxWidth().clickable { onNavigate("match/${live.id}") },
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFB71C1C)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFC0392B), contentColor = Color.White),
                 ) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.Timer, null)
@@ -164,10 +164,12 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             Button(
                 onClick = { onNavigate("newMatch") },
                 modifier = Modifier.fillMaxWidth().height(72.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = grayButtonColors(),
             ) {
                 Icon(Icons.Filled.PlayArrow, null, Modifier.size(32.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Nuevo partido", style = MaterialTheme.typography.titleLarge)
+                Text("NUEVO PARTIDO", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -183,7 +185,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             Text(
                 "Versión ${BuildConfig.VERSION_NAME}",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Muted,
             )
         }
     }

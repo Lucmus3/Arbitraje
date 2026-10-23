@@ -1,5 +1,9 @@
 package com.lucas.arbitraje.ui
 
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -74,10 +78,11 @@ fun NewMatchScreen(presetLeagueId: String?, onBack: () -> Unit, onStart: (String
                 IconButton(onClick = { val h = homeId; homeId = awayId; awayId = h }) { Icon(Icons.Filled.SwapVert, "Invertir") }
             }
             Picker("Visitante", teams.filter { it.id != homeId }, away, { it.name }, { awayId = it.id }, leading = { TeamBadge(it, 28.dp) })
-            OutlinedButton(onClick = { creatingTeam = true }) {
+            Button(onClick = { creatingTeam = true }, colors = grayButtonColors(), shape = MaterialTheme.shapes.medium) {
                 Icon(Icons.Filled.Add, null); Text("Crear equipo")
             }
 
+            Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Duración de cada tiempo", style = MaterialTheme.typography.titleSmall)
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(10, 20, 25, 30, 35, 40, 45).forEach { m ->
@@ -90,6 +95,7 @@ fun NewMatchScreen(presetLeagueId: String?, onBack: () -> Unit, onStart: (String
                     FilterChip(selected = periods == p, onClick = { periods = p }, label = { Text("$p") })
                 }
             }
+            } }
 
             Spacer(Modifier.height(8.dp))
             Button(
@@ -106,9 +112,11 @@ fun NewMatchScreen(presetLeagueId: String?, onBack: () -> Unit, onStart: (String
                     onStart(m.id)
                 },
                 modifier = Modifier.fillMaxWidth().height(64.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF4D03F), contentColor = Ink, disabledContainerColor = NavyLight, disabledContentColor = Muted),
             ) {
                 Icon(Icons.Filled.PlayArrow, null)
-                Text("Ir a la cancha", style = MaterialTheme.typography.titleMedium)
+                Text("IR A LA CANCHA", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
         }
     }
