@@ -80,6 +80,7 @@ import com.lucas.arbitraje.data.CardColor
 import com.lucas.arbitraje.data.EventType
 import com.lucas.arbitraje.data.Match
 import com.lucas.arbitraje.data.MatchEvent
+import com.lucas.arbitraje.data.Player
 import com.lucas.arbitraje.data.MatchStatus
 import com.lucas.arbitraje.data.Repository
 import com.lucas.arbitraje.data.Side
@@ -131,6 +132,10 @@ fun MatchScreen(matchId: String, onExit: () -> Unit, onFinished: (String) -> Uni
 
     var flashCard by remember { mutableStateOf<CardColor?>(null) }
     var assignCard by remember { mutableStateOf<CardColor?>(null) }
+    // Gol recién sumado al que falta asignarle autor.
+    var askScorer by remember { mutableStateOf<Pair<Side, String>?>(null) }
+    // Tarjeta con equipo elegido a la que falta asignarle jugador.
+    var askCardPlayer by remember { mutableStateOf<Triple<CardColor, Side, Long>?>(null) }
     var confirmEndPeriod by remember { mutableStateOf(false) }
     var confirmExit by remember { mutableStateOf(false) }
 
@@ -147,6 +152,7 @@ fun MatchScreen(matchId: String, onExit: () -> Unit, onFinished: (String) -> Uni
                 )
             )
             vibrate(context, 60)
+            askScorer = side to ev.id
         } else {
             val current = if (side == Side.HOME) match.homeGoals else match.awayGoals
             if (current == 0) return
@@ -208,17 +214,54 @@ fun MatchScreen(matchId: String, onExit: () -> Unit, onFinished: (String) -> Uni
             home = home,
             away = away,
             onDismiss = { assignCard = null },
-            onAssign = { side, player ->
+            onAssign = { side ->
+                askCardPlayer = Triple(card, side, match.playedMs(System.currentTimeMillis()))
+                assignCard = null
+            },
+        )
+    }
+
+    fun teamOf(side: Side) = if (side == Side.HOME) home else away
+
+    /** Guarda en el plantel al jugador escrito en el momento, si se pidió. */
+    fun keep(side: Side, player: Player?, isNew: Boolean) {
+        val team = teamOf(side)
+        if (player != null && isNew && team != null) repo.addPlayer(team.id, player)
+    }
+
+    askScorer?.let { (side, eventId) ->
+        PlayerPickerDialog(
+            title = "¿Quién hizo el gol?",
+            team = teamOf(side),
+            onDismiss = { askScorer = null },
+            onPick = { player, isNew ->
+                keep(side, player, isNew)
+                if (player != null) repo.match(match.id)?.let { m ->
+                    update(m.copy(events = m.events.map { if (it.id == eventId) it.copy(player = player.label, playerId = player.id) else it }))
+                }
+                askScorer = null
+            },
+        )
+    }
+
+    askCardPlayer?.let { (card, side, elapsed) ->
+        PlayerPickerDialog(
+            title = "Tarjeta ${card.label.lowercase()}: ¿a quién?",
+            team = teamOf(side),
+            onDismiss = { askCardPlayer = null },
+            onPick = { player, isNew ->
+                keep(side, player, isNew)
                 val ev = MatchEvent(
                     type = EventType.CARD,
                     side = side,
                     period = match.currentPeriod,
-                    elapsedMs = match.playedMs(System.currentTimeMillis()),
+                    elapsedMs = elapsed,
                     card = card,
-                    player = player.ifBlank { null },
+                    player = player?.label,
+                    playerId = player?.id,
                 )
-                update(match.copy(events = match.events + ev))
-                assignCard = null
+                repo.match(match.id)?.let { m -> update(m.copy(events = m.events + ev)) }
+                askCardPlayer = null
             },
         )
     }
@@ -397,7 +440,7 @@ private fun CardBar(onCard: (CardColor) -> Unit) {
         Modifier.fillMaxWidth().background(Color(0xFF111111)).padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        CardColor.entries.forEach { c ->
+        CardColor.active.forEach { c ->
             CardButton(c, Modifier.weight(1f)) { onCard(c) }
         }
     }
@@ -442,23 +485,15 @@ private fun AssignCardDialog(
     home: Team?,
     away: Team?,
     onDismiss: () -> Unit,
-    onAssign: (Side, String) -> Unit,
+    onAssign: (Side) -> Unit,
 ) {
-    var player by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Tarjeta ${card.label.lowercase()}: ¿para quién?") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = player,
-                    onValueChange = { player = it },
-                    label = { Text("Jugador o número (opcional)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                TeamChoice(home) { onAssign(Side.HOME, player) }
-                TeamChoice(away) { onAssign(Side.AWAY, player) }
+                TeamChoice(home) { onAssign(Side.HOME) }
+                TeamChoice(away) { onAssign(Side.AWAY) }
             }
         },
         confirmButton = {},
