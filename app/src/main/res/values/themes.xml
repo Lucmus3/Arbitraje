@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.Arbitraje" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#0B3D2E</item>
+        <item name="android:navigationBarColor">#0B3D2E</item>
+        <item name="android:windowBackground">#0B3D2E</item>
+    </style>
+</resources>

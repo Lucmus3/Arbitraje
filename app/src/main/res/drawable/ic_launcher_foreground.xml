@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- tarjeta roja detrás, amarilla adelante -->
+    <path android:fillColor="#E53935"
+        android:pathData="M50,30 L70,34 L64,74 L44,70 Z" />
+    <path android:fillColor="#FDD835"
+        android:pathData="M38,34 L58,34 L58,76 L38,76 Z" />
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M30,54 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+</vector>
