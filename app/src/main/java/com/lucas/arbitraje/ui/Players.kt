@@ -128,6 +128,7 @@ fun PlayerPickerDialog(
     team: Team?,
     onDismiss: () -> Unit,
     onPick: (player: Player?, isNew: Boolean) -> Unit,
+    excludeId: String? = null,
 ) {
     var typed by remember { mutableStateOf("") }
     var save by remember { mutableStateOf(true) }
@@ -139,7 +140,7 @@ fun PlayerPickerDialog(
                 if (team != null) Row(verticalAlignment = Alignment.CenterVertically) {
                     TeamBadge(team, 28.dp); Spacer(Modifier.width(8.dp)); Text(team.name, fontWeight = FontWeight.Bold)
                 }
-                team?.roster?.forEach { p ->
+                team?.roster?.filter { it.id != excludeId }?.forEach { p ->
                     Button(onClick = { onPick(p, false) }, modifier = Modifier.fillMaxWidth(), colors = grayButtonColors(), shape = MaterialTheme.shapes.medium) {
                         Text(p.number?.toString() ?: "-", Modifier.width(36.dp), fontWeight = FontWeight.Bold)
                         Text(p.name, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)

@@ -1,6 +1,6 @@
 {
-  "versionCode": 4,
-  "versionName": "1.0.4",
+  "versionCode": 5,
+  "versionName": "1.0.5",
   "apk": "updates/arbitraje.apk",
-  "notes": "Nueva estética: azul marino, tarjetas gris claro y botones redondeados."
+  "notes": "Botón CAMBIOS para registrar sustituciones (sale / entra)."
 }

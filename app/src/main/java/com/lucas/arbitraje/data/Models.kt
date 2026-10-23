@@ -47,7 +47,7 @@ enum class CardColor(val label: String, val argb: Long) {
     }
 }
 
-enum class EventType { GOAL, CARD }
+enum class EventType { GOAL, CARD, SUB }
 
 enum class Side { HOME, AWAY }
 
@@ -62,8 +62,12 @@ data class MatchEvent(
     /** Milisegundos de juego dentro del período. */
     val elapsedMs: Long,
     val card: CardColor? = null,
+    /** Autor del gol, jugador amonestado o, en un cambio, el que sale. */
     val player: String? = null,
     val playerId: String? = null,
+    /** En un cambio, el que entra. */
+    val playerIn: String? = null,
+    val playerInId: String? = null,
 )
 
 data class Match(

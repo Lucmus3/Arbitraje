@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -136,6 +137,10 @@ fun MatchScreen(matchId: String, onExit: () -> Unit, onFinished: (String) -> Uni
     var askScorer by remember { mutableStateOf<Pair<Side, String>?>(null) }
     // Tarjeta con equipo elegido a la que falta asignarle jugador.
     var askCardPlayer by remember { mutableStateOf<Triple<CardColor, Side, Long>?>(null) }
+    // Cambio: primero el equipo, después quién sale y quién entra.
+    var subChooseTeam by remember { mutableStateOf(false) }
+    var subOut by remember { mutableStateOf<Pair<Side, Long>?>(null) }
+    var subIn by remember { mutableStateOf<Triple<Side, Long, Player?>?>(null) }
     var confirmEndPeriod by remember { mutableStateOf(false) }
     var confirmExit by remember { mutableStateOf(false) }
 
@@ -205,6 +210,16 @@ fun MatchScreen(matchId: String, onExit: () -> Unit, onFinished: (String) -> Uni
                 }
             }
             CardBar(onCard = { flashCard = it; vibrate(context, 120) })
+            Button(
+                onClick = { subChooseTeam = true },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = grayButtonColors(),
+            ) {
+                Icon(Icons.Filled.SwapHoriz, null)
+                Spacer(Modifier.width(8.dp))
+                Text("CAMBIOS", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
         }
 
         // Pantalla completa del color de la tarjeta durante 5 segundos.
@@ -249,6 +264,59 @@ fun MatchScreen(matchId: String, onExit: () -> Unit, onFinished: (String) -> Uni
                     update(m.copy(events = m.events.map { if (it.id == eventId) it.copy(player = player.label, playerId = player.id) else it }))
                 }
                 askScorer = null
+            },
+        )
+    }
+
+    if (subChooseTeam) {
+        AlertDialog(
+            onDismissRequest = { subChooseTeam = false },
+            title = { Text("Cambio: ¿de qué equipo?") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    val elapsed = match.playedMs(System.currentTimeMillis())
+                    TeamChoice(home) { subOut = Side.HOME to elapsed; subChooseTeam = false }
+                    TeamChoice(away) { subOut = Side.AWAY to elapsed; subChooseTeam = false }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { subChooseTeam = false }) { Text("Cancelar") } },
+        )
+    }
+
+    subOut?.let { (side, elapsed) ->
+        PlayerPickerDialog(
+            title = "Cambio: ¿quién sale?",
+            team = teamOf(side),
+            onDismiss = { subOut = null },
+            onPick = { player, isNew ->
+                keep(side, player, isNew)
+                subIn = Triple(side, elapsed, player)
+                subOut = null
+            },
+        )
+    }
+
+    subIn?.let { (side, elapsed, out) ->
+        PlayerPickerDialog(
+            title = "Cambio: ¿quién entra?",
+            team = teamOf(side),
+            excludeId = out?.id,
+            onDismiss = { subIn = null },
+            onPick = { player, isNew ->
+                keep(side, player, isNew)
+                val ev = MatchEvent(
+                    type = EventType.SUB,
+                    side = side,
+                    period = match.currentPeriod,
+                    elapsedMs = elapsed,
+                    player = out?.label,
+                    playerId = out?.id,
+                    playerIn = player?.label,
+                    playerInId = player?.id,
+                )
+                repo.match(match.id)?.let { m -> update(m.copy(events = m.events + ev)) }
+                subIn = null
             },
         )
     }
