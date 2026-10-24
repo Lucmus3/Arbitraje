@@ -4,6 +4,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -65,7 +68,21 @@ fun grayButtonColors() = ButtonDefaults.buttonColors(
     disabledContentColor = Muted,
 )
 
+// Algunas fuentes del sistema (p. ej. Samsung) tienen colas de g/p más largas que Roboto:
+// con el padding de fuente activado no se cortan.
+private val safeText = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = true))
+
+private val typography = Typography().run {
+    copy(
+        displayLarge = displayLarge.merge(safeText), displayMedium = displayMedium.merge(safeText), displaySmall = displaySmall.merge(safeText),
+        headlineLarge = headlineLarge.merge(safeText), headlineMedium = headlineMedium.merge(safeText), headlineSmall = headlineSmall.merge(safeText),
+        titleLarge = titleLarge.merge(safeText), titleMedium = titleMedium.merge(safeText), titleSmall = titleSmall.merge(safeText),
+        bodyLarge = bodyLarge.merge(safeText), bodyMedium = bodyMedium.merge(safeText), bodySmall = bodySmall.merge(safeText),
+        labelLarge = labelLarge.merge(safeText), labelMedium = labelMedium.merge(safeText), labelSmall = labelSmall.merge(safeText),
+    )
+}
+
 @Composable
 fun ArbitrajeTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = colors, shapes = shapes, content = content)
+    MaterialTheme(colorScheme = colors, shapes = shapes, typography = typography, content = content)
 }

@@ -1,12 +1,12 @@
 package com.lucas.arbitraje.ui
 
+import androidx.compose.foundation.layout.heightIn
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -163,7 +163,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
 
             Button(
                 onClick = { onNavigate("newMatch") },
-                modifier = Modifier.fillMaxWidth().height(72.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
                 shape = MaterialTheme.shapes.large,
                 colors = grayButtonColors(),
             ) {
@@ -193,8 +193,8 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
 
 @Composable
 private fun HomeTile(title: String, count: String, icon: ImageVector, modifier: Modifier, onClick: () -> Unit) {
-    Card(modifier.aspectRatio(1.3f).clickable(onClick = onClick)) {
-        Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
+    Card(modifier.heightIn(min = 130.dp).clickable(onClick = onClick)) {
+        Column(Modifier.fillMaxWidth().heightIn(min = 130.dp).padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Icon(icon, null, Modifier.size(36.dp), tint = Accent)
             Column {
                 if (count.isNotEmpty()) Text(count, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)

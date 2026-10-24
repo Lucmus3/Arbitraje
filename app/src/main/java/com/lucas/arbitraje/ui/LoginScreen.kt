@@ -1,5 +1,6 @@
 package com.lucas.arbitraje.ui
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.graphics.Color
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -84,7 +85,7 @@ fun LoginScreen() {
         } else {
             Button(
                 onClick = { if (auth.usesGoogleSignIn) googleSignIn() else chooser.launch(auth.accountChooserIntent()) },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.large,
                 colors = grayButtonColors(),
             ) {

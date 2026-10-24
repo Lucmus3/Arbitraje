@@ -1,5 +1,6 @@
 package com.lucas.arbitraje.ui
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.ButtonDefaults
@@ -111,7 +112,7 @@ fun NewMatchScreen(presetLeagueId: String?, onBack: () -> Unit, onStart: (String
                     repo.upsertMatch(m)
                     onStart(m.id)
                 },
-                modifier = Modifier.fillMaxWidth().height(64.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
                 shape = MaterialTheme.shapes.large,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF4D03F), contentColor = Ink, disabledContainerColor = NavyLight, disabledContentColor = Muted),
             ) {
