@@ -1,6 +1,6 @@
 {
-  "versionCode": 5,
-  "versionName": "1.0.5",
+  "versionCode": 6,
+  "versionName": "1.0.6",
   "apk": "updates/arbitraje.apk",
-  "notes": "Botón CAMBIOS para registrar sustituciones (sale / entra)."
+  "notes": "Arreglo de letras cortadas (g, p) con algunas fuentes y tamaños de letra."
 }

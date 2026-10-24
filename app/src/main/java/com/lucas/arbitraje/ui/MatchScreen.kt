@@ -1,5 +1,6 @@
 package com.lucas.arbitraje.ui
 
+import androidx.compose.foundation.layout.heightIn
 import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
@@ -70,6 +71,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -212,7 +214,7 @@ fun MatchScreen(matchId: String, onExit: () -> Unit, onFinished: (String) -> Uni
             CardBar(onCard = { flashCard = it; vibrate(context, 120) })
             Button(
                 onClick = { subChooseTeam = true },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = grayButtonColors(),
             ) {
@@ -428,6 +430,7 @@ private fun ClockBar(
                     formatClock(minOf(played, regulationMs)),
                     color = Ink,
                     fontSize = 40.sp,
+                    lineHeight = 46.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
                 if (extra > 0) {
@@ -483,7 +486,9 @@ private fun TeamHalf(team: Team?, goals: Int, modifier: Modifier, onPlus: () -> 
         // franja con el color del equipo
         Box(Modifier.fillMaxHeight().width(6.dp).background(teamColor))
         val compact = maxHeight < 260.dp
-        val scoreSize = (minOf(maxWidth.value * 0.5f, maxHeight.value * if (compact) 0.55f else 0.42f)).sp
+        // en sp pero calculado con el espacio disponible: se divide por la escala de letra del sistema
+        val fontScale = LocalDensity.current.fontScale
+        val scoreSize = (minOf(maxWidth.value * 0.5f, maxHeight.value * if (compact) 0.55f else 0.42f) / fontScale).sp
         Column(
             Modifier.fillMaxSize().padding(start = 18.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -512,6 +517,7 @@ private fun TeamHalf(team: Team?, goals: Int, modifier: Modifier, onPlus: () -> 
                     "$goals",
                     color = Ink,
                     fontSize = scoreSize,
+                    lineHeight = scoreSize,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 18.dp),
@@ -596,7 +602,7 @@ private fun AssignCardDialog(
 
 @Composable
 private fun ColumnScope.TeamChoice(team: Team?, onClick: () -> Unit) {
-    Button(onClick = onClick, modifier = Modifier.fillMaxWidth().height(56.dp), colors = grayButtonColors(), shape = MaterialTheme.shapes.medium) {
+    Button(onClick = onClick, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp), colors = grayButtonColors(), shape = MaterialTheme.shapes.medium) {
         TeamBadge(team, 32.dp)
         Spacer(Modifier.width(12.dp))
         Text(team?.name ?: "?", Modifier.weight(1f))
